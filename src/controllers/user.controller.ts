@@ -63,7 +63,7 @@ export async function uploadProfilePhoto(req: AuthRequest, res: Response) {
     const url = await uploadProfilePicture(req.file, targetUserId);
 
     await prisma.users.update({
-      where: { id: req.user.id },
+      where: { id: targetUserId },
       data: { profile_picture_url: url },
     });
 
