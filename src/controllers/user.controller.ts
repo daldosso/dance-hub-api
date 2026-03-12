@@ -50,7 +50,9 @@ export async function uploadProfilePhoto(req: AuthRequest, res: Response) {
       return res.status(401).json({ error: "Utente non autenticato" });
     }
 
-    if (!req.userId) {
+    const targetUserId = Number(req.body.userId);
+
+    if (!targetUserId) {
       return res.status(400).json({ error: "Utente non specificato" });
     }
 
@@ -58,7 +60,7 @@ export async function uploadProfilePhoto(req: AuthRequest, res: Response) {
       return res.status(400).json({ error: "Nessun file caricato" });
     }
 
-    const url = await uploadProfilePicture(req.file, req.user.id);
+    const url = await uploadProfilePicture(req.file, targetUserId);
 
     await prisma.users.update({
       where: { id: req.user.id },
