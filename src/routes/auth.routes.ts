@@ -1,22 +1,11 @@
-// src/routes/auth.routes.ts
 import { Router } from "express";
+import { register, login, getMe } from "../controllers/auth.controller";
+import { authenticateToken } from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.post("/register", (req, res) => {
-  res
-    .status(501)
-    .json({ message: "Endpoint register non ancora implementato" });
-});
-
-router.post("/login", (req, res) => {
-  res.status(501).json({ message: "Endpoint login non ancora implementato" });
-});
-
-router.get("/me", (req, res) => {
-  res
-    .status(501)
-    .json({ message: "Endpoint profilo utente non ancora implementato" });
-});
+router.post("/register", register);
+router.post("/login", login);
+router.get("/me", authenticateToken, getMe);
 
 export default router;
