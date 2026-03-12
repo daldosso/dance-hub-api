@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET!;
 
 export interface AuthRequest extends Request {
+  userId: number;
   user?: { id: number; email: string; role: string };
 }
 

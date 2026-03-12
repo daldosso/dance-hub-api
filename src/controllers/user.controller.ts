@@ -50,6 +50,10 @@ export async function uploadProfilePhoto(req: AuthRequest, res: Response) {
       return res.status(401).json({ error: "Utente non autenticato" });
     }
 
+    if (!req.userId) {
+      return res.status(400).json({ error: "Utente non specificato" });
+    }
+
     if (!req.file) {
       return res.status(400).json({ error: "Nessun file caricato" });
     }
