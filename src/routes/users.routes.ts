@@ -1,13 +1,11 @@
 import { Router } from "express";
 import { authenticateToken } from "../middleware/auth.middleware";
 import { upload } from "../services/upload.service";
-import { uploadProfilePhoto } from "../controllers/user.controller";
+import { listUsers, uploadProfilePhoto } from "../controllers/user.controller";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-  res.json({ message: "Lista utenti - da implementare" });
-});
+router.get("/", listUsers);
 
 router.post(
   "/profile-photo",
