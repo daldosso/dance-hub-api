@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { PrismaClient, User } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 
 const prisma = new PrismaClient();
@@ -28,7 +28,7 @@ const loginSchema = z.object({
 export async function registerUser(data: unknown) {
   const validated = registerSchema.parse(data);
 
-  const existingUser = await prisma.user.findUnique({
+  const existingUser = await prisma.users.findUnique({
     where: { email: validated.email },
   });
 
@@ -38,45 +38,51 @@ export async function registerUser(data: unknown) {
 
   const passwordHash = await bcrypt.hash(validated.password, 10);
 
-  const user = await prisma.user.create({
+  const user = await prisma.users.create({
     data: {
       email: validated.email,
-      passwordHash,
+      password_hash: passwordHash,
       username: validated.username,
-      fullName: validated.fullName,
-      birthDate: validated.birthDate ? new Date(validated.birthDate) : null,
+      full_name: validated.fullName,
+      birth_date: validated.birthDate ? new Date(validated.birthDate) : null,
       gender: validated.gender,
       city: validated.city,
-      danceStyles: validated.danceStyles || [],
-      skillLevel: validated.skillLevel,
-      isActive: true,
+      dance_styles: validated.danceStyles || [],
+      skill_level: validated.skillLevel,
+      is_active: true,
     },
   });
 
-  return { user: { id: user.id, email: user.email, username: user.username } };
+  return {
+    user: {
+      id: Number(user.id),
+      email: user.email,
+      username: user.username,
+    },
+  };
 }
 
 export async function loginUser(data: unknown) {
   const { email, password } = loginSchema.parse(data);
 
-  const user = await prisma.user.findUnique({
+  const user = await prisma.users.findUnique({
     where: { email },
   });
 
-  if (!user || !user.passwordHash) {
+  if (!user || !user.password_hash) {
     throw new Error("Credenziali non valide");
   }
 
-  const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+  const isPasswordValid = await bcrypt.compare(password, user.password_hash);
   if (!isPasswordValid) {
     throw new Error("Credenziali non valide");
   }
 
   const token = jwt.sign(
     {
-      id: user.id,
+      id: Number(user.id),
       email: user.email,
-      role: user.isOrganizer ? "organizer" : "user",
+      role: user.is_organizer ? "organizer" : "user",
     },
     JWT_SECRET,
     { expiresIn: "7d" },
@@ -85,34 +91,45 @@ export async function loginUser(data: unknown) {
   return {
     token,
     user: {
-      id: user.id,
+      id: Number(user.id),
       email: user.email,
       username: user.username,
-      fullName: user.fullName,
-      isTeacher: user.isTeacher,
-      isOrganizer: user.isOrganizer,
+      fullName: user.full_name,
+      isTeacher: user.is_teacher,
+      isOrganizer: user.is_organizer,
     },
   };
 }
 
 export async function getCurrentUser(userId: number) {
-  const user = await prisma.user.findUnique({
+  const user = await prisma.users.findUnique({
     where: { id: userId },
     select: {
       id: true,
       email: true,
       username: true,
-      fullName: true,
-      danceStyles: true,
-      skillLevel: true,
-      isTeacher: true,
-      isOrganizer: true,
+      full_name: true,
+      dance_styles: true,
+      skill_level: true,
+      is_teacher: true,
+      is_organizer: true,
       city: true,
-      createdAt: true,
+      created_at: true,
     },
   });
 
   if (!user) throw new Error("Utente non trovato");
 
-  return user;
+  return {
+    id: Number(user.id),
+    email: user.email,
+    username: user.username,
+    full_name: user.full_name,
+    dance_styles: user.dance_styles,
+    skill_level: user.skill_level,
+    is_teacher: user.is_teacher,
+    is_organizer: user.is_organizer,
+    city: user.city,
+    created_at: user.created_at,
+  };
 }
